@@ -3,3 +3,6 @@
 - Postgres running on Docker
 - Swagger for docs
 - Golang migrate for migrations 
+- chi - Routing and mux
+- airverse-air- For Hot reloading
+- direnv - for loading env vars
