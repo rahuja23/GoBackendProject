@@ -9,3 +9,7 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 func (app *application) readinessCheckHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Ready!!"))
 }
+
+func (app *application) buildInfoHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Build Info"))
+}
