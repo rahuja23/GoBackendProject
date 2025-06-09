@@ -6,3 +6,8 @@
 - chi - Routing and mux
 - airverse-air- For Hot reloading
 - direnv - for loading env vars
+
+- migrations for creating and altering table schemas
+- makefile to execute migration commands
+- CRUD (CREATE READ UPDATE DELETE API HANDLERS)
+- 

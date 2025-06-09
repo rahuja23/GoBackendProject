@@ -22,8 +22,10 @@ type dbConfig struct {
 }
 
 type config struct {
-	addr string
-	db   dbConfig
+	addr    string
+	db      dbConfig
+	env     string
+	version string
 }
 
 func (app *application) mount() *chi.Mux {
