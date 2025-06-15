@@ -10,4 +10,4 @@
 - migrations for creating and altering table schemas
 - makefile to execute migration commands
 - CRUD (CREATE READ UPDATE DELETE API HANDLERS)
-- 
+- Adding go-playground/validator for API request validation
