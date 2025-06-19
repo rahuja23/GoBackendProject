@@ -18,6 +18,11 @@ type CommentsStore struct {
 	db *sql.DB
 }
 
+type CommentDelete struct {
+	PostID int64 `json:"post_id" validate:"required"`
+	ID     int64 `json:"id" validate:"required"`
+}
+
 func (s *CommentsStore) Create(ctx context.Context, comment *Comment) error {
 	query := `
 	INSERT INTO comments (post_id,  user_id,  content)
@@ -70,4 +75,15 @@ func (s *CommentsStore) GetCommentsByPostId(ctx context.Context, postID int64) (
 
 	}
 	return comments, nil
+}
+
+func (s *CommentsStore) Delete(ctx context.Context, comment *CommentDelete) error {
+	query := `
+	DELETE FROM comments WHERE id = $1 and post_id = $2
+	`
+	_, err := s.db.QueryContext(ctx, query, comment.ID, comment.PostID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

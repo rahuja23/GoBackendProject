@@ -13,6 +13,11 @@ type CreateCommentPayload struct {
 	PostId  int64  `json:"post_id"`
 }
 
+type DeleteCommentPayload struct {
+	PostId    int64 `json:"post_id"`
+	CommentId int64 `json:"comment_id"`
+}
+
 func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
 	userId := 1
@@ -43,4 +48,26 @@ func (app *application) createCommentHandler(w http.ResponseWriter, r *http.Requ
 	if err := app.store.Comments.Create(ctx, comment); err != nil {
 		app.internalServerError(w, r, err)
 	}
+}
+
+func (app *application) deleteCommmentHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "postID")
+	idParam2 := chi.URLParam(r, "commentID")
+
+	post_id, err := strconv.ParseInt(idParam, 10, 64)
+	comment_id, err := strconv.ParseInt(idParam2, 10, 64)
+	ctx := r.Context()
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+	comment := &store.CommentDelete{
+		PostID: post_id,
+		ID:     comment_id,
+	}
+
+	if err := app.store.Comments.Delete(ctx, comment); err != nil {
+		app.internalServerError(w, r, err)
+	}
+
 }
