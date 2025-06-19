@@ -19,8 +19,8 @@ type CommentsStore struct {
 }
 
 type CommentDelete struct {
-	PostID int64 `json:"post_id" validate:"required"`
 	ID     int64 `json:"id" validate:"required"`
+	PostID int64 `json:"post_id" validate:"required"`
 }
 
 func (s *CommentsStore) Create(ctx context.Context, comment *Comment) error {

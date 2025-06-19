@@ -17,6 +17,9 @@ type Post struct {
 	UpdatedAt string    `json:"updated_at"`
 	Comments  []Comment `json:"comments"`
 }
+type DeletePost struct {
+	ID int64 `json:"id"`
+}
 type PostsStore struct {
 	db *sql.DB
 }
@@ -67,4 +70,15 @@ func (s *PostsStore) GetByID(ctx context.Context, id int64) (*Post, error) {
 	}
 	return &post, nil
 
+}
+
+func (s *PostsStore) Delete(ctx context.Context, postdel *DeletePost) error {
+	query := `
+		DELETE FROM posts where id = $1
+`
+	_, err := s.db.QueryContext(ctx, query, postdel.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
