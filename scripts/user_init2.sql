@@ -1,0 +1,1 @@
+INSERT INTO users (username, email, password) VALUES ('rachitAhuja', 'ahuja.rachit@hotmail.com', 'testing123') RETURNING id, created_at;
