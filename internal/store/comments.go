@@ -4,15 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"time"
 )
 
 type Comment struct {
-	ID        int64  `json:"id"`
-	PostID    int64  `json:"post_id"`
-	UserID    int64  `json:"user_id" validate:"required"`
-	Content   string `json:"content" validate:"required"`
-	CreatedAt string `json:"created_at"`
-	USER      User   `json:"user"`
+	ID        int64     `json:"id"`
+	PostID    int64     `json:"post_id"`
+	UserID    int64     `json:"user_id" validate:"required"`
+	Content   string    `json:"content" validate:"required"`
+	CreatedAt time.Time `json:"created_at"`
+	USER      User      `json:"user"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 type CommentsStore struct {
 	db *sql.DB
@@ -26,8 +29,10 @@ type CommentDelete struct {
 func (s *CommentsStore) Create(ctx context.Context, comment *Comment) error {
 	query := `
 	INSERT INTO comments (post_id,  user_id,  content)
-	VALUES ($1, $2, $3) RETURNING id, created_at
+	VALUES ($1, $2, $3) RETURNING id, created_at, updated_at
 	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -37,6 +42,7 @@ func (s *CommentsStore) Create(ctx context.Context, comment *Comment) error {
 	).Scan(
 		&comment.ID,
 		&comment.CreatedAt,
+		&comment.UpdatedAt,
 	)
 	if err != nil {
 		return err
@@ -44,7 +50,7 @@ func (s *CommentsStore) Create(ctx context.Context, comment *Comment) error {
 	return nil
 }
 
-func (s *CommentsStore) GetCommentsByPostId(ctx context.Context, postID int64) ([]Comment, error) {
+func (s *CommentsStore) Get(ctx context.Context, postID int64) ([]Comment, error) {
 	query := `
 	SELECT c.id, c.post_id, c.user_id, c.content, c.created_at 
 	FROM comments c 
@@ -52,6 +58,8 @@ func (s *CommentsStore) GetCommentsByPostId(ctx context.Context, postID int64) (
 	WHERE c.post_id = $1
 	ORDER BY c.created_at DESC;
 	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	rows, err := s.db.QueryContext(ctx, query, postID)
 	if err != nil {
 		return nil, err
@@ -81,8 +89,33 @@ func (s *CommentsStore) Delete(ctx context.Context, comment *CommentDelete) erro
 	query := `
 	DELETE FROM comments WHERE id = $1 and post_id = $2
 	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
 	_, err := s.db.QueryContext(ctx, query, comment.ID, comment.PostID)
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *CommentsStore) Update(ctx context.Context, comment *Comment) error {
+
+	query := `
+		UPDATE comments
+		SET content = $3, user_id = $4, updated_at = NOW()
+		WHERE id = $1 and post_id = $2
+		RETURNING updated_at
+	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+	err := s.db.QueryRowContext(ctx,
+		query,
+		comment.ID,
+		comment.PostID,
+		comment.Content,
+		comment.UserID).Scan(&comment.UpdatedAt)
+	if err != nil {
+		log.Fatalf("Issue Updating the Post from Store Handler with error %v", err)
 		return err
 	}
 	return nil

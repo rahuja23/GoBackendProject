@@ -41,19 +41,40 @@ func (app *application) mount() *chi.Mux {
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.healthCheckHandler)
-	})
+		r.Route("/posts", func(r chi.Router) {
+			r.Post("/", app.createPostHandler)
 
-	r.Route("/v1/posts", func(r chi.Router) {
-		r.Post("/", app.createPostHandler)
+			r.Route("/{postID}", func(r chi.Router) {
+				r.Use(app.postsContextMiddleware)
+				r.Patch("/", app.updatePostHandler)
+				r.Get("/", app.getPostHandler)
+				r.Delete("/", app.deletePostHandler)
+				r.Route("/comment", func(r chi.Router) {
+					r.Post("/", app.createCommentHandler)
+					r.Delete("/{commentID}", app.deleteCommmentHandler)
 
-		r.Route("/{postID}", func(r chi.Router) {
-			r.Patch("/", app.editPostHandler)
-			r.Get("/", app.getPostHandler)
-			r.Delete("/", app.deletePostHandler)
-			r.Post("/", app.createCommentHandler)
-			r.Delete("/comment/{commentID}/delete", app.deleteCommmentHandler)
+					r.Put("/{commentID}", app.UpdateCommentHandler)
+				})
+
+			})
 		})
+		r.Route("/users", func(r chi.Router) {
+			r.Post("/", app.createUserHandler)
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Use(app.userContextMiddleware)
+				r.Get("/", app.getUserHandler)
+				r.Patch("/", app.updateUserHandler)
+				r.Delete("/", app.deleteUserHandler)
+				r.Put("/follow", app.followHandler)
+				r.Put("/unfollow", app.unfollowHandler)
+			})
+			r.Group(func(r chi.Router) {
+				r.Get("/feed", app.getUserFeedHandler)
+			})
+		})
+
 	})
+
 	return r
 }
 

@@ -1,0 +1,2 @@
+ALTER TABLE
+  COMMENTS DROP COLUMN updated_at;
